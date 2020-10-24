@@ -22,7 +22,7 @@ std::vector<uint8_t> read_binary_file(std::string const& file)
 
 void dump_binary_file(std::string const& file, std::vector<uint8_t> const& data)
 {
-    std::ofstream out(file);
+    std::ofstream out(file, std::ios_base::binary);
     if (!out.good()) {
         throw std::runtime_error("Failed to open file: "s + file);
     }
