@@ -1,3 +1,4 @@
+#include <banditutil/color.h>
 #include <banditutil/file.h>
 #include <banditutil/title.h>
 
@@ -5,15 +6,10 @@
 #include <stb_image/stb_image.h>
 #include <stb_image_write/stb_image_write.h>
 
+#include <array>
 #include <iostream>
 
 namespace {
-
-struct color_t {
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-};
 
 constexpr auto color_black = color_t{0, 0, 0};
 
@@ -95,37 +91,17 @@ void image_blit(image_t const& src, image_t& dest, int dest_x, int dest_y)
     }
 }
 
-template <typename Iterator>
-image_t draw_title(Iterator title, std::vector<image_t> const& spritesheet)
+image_t draw_title(title_t title, std::vector<image_t> const& spritesheet)
 {
     // spritesheets are supposed to have constant dimensions and channels
     auto const& cell = spritesheet[0];
     image_t builder{cell.width * 80, cell.height * 25, cell.channels, std::vector<color_t>(cell.width * 80 * cell.height * 25, color_black)};
 
-    int width_iter = 0;
-    int height_iter = 0;
-    bool saw_carriage_return = false;
-
-    for (int i = 0; i < (80 + 2) * 25; i++) {
-        auto const c = *title;
-        ++title;
-
-        if (saw_carriage_return && c == '\n') {
-            width_iter = 0;
-            height_iter += cell.height;
-            saw_carriage_return = false;
-            continue;
-        } else if (saw_carriage_return) {
-            image_blit(spritesheet['\r'], builder, width_iter, height_iter);
-            width_iter += cell.width;
-            saw_carriage_return = false;
-        } else if (c == '\r') {
-            saw_carriage_return = true;
-            continue;
+    for (int y = 0; y < 25; y++) {
+        for (int x = 0; x < 80; x++) {
+            auto const c = title.characters[y * 80 + x];
+            image_blit(spritesheet[c], builder, x * 8, y * 16);
         }
-
-        image_blit(spritesheet[c], builder, width_iter, height_iter);
-        width_iter += cell.width;
     }
 
     return builder;
@@ -143,11 +119,11 @@ int main(int argc, char** argv)
     auto const title_filename = argv[1];
     auto const out_filename = argv[2];
 
-    auto const encoded = read_binary_file(title_filename);
-    auto const decoded = title_rle_decode(encoded);
+    auto const titles = titles_from_file(title_filename);
+
     auto const font_img = image_from_memory(font437, font437 + sizeof(font437));
     auto const spritesheet = image_to_spritesheet(font_img, 8, 16);
-    auto const drawn_title = draw_title(decoded.begin() + (82*25 * 4), spritesheet);
+    auto const drawn_title = draw_title(titles[0], spritesheet);
 
     auto const did_save = save_image(out_filename, drawn_title);
     if (!did_save) {

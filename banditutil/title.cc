@@ -1,5 +1,7 @@
 #include "title.h"
 
+#include "file.h"
+
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
@@ -37,4 +39,39 @@ std::vector<uint8_t> title_rle_decode(std::vector<uint8_t> const& encoded)
 
     std::cerr << "WARNING: didn't find terminating 0x80\n";
     return decoded;
+}
+
+std::vector<title_t> titles_from_file(std::string const& filename)
+{
+    auto const decoded = title_rle_decode(read_binary_file(filename));
+
+    std::vector<title_t> builder(3);
+
+    for (auto screen = 0; screen < 3; ++screen) {
+        auto i = 0;
+        for (auto y = 0; y < 25; ++y) {
+            for (auto x = 0; x < 82; ++x) {
+                if (x == 80 || x == 81) {
+                    continue;
+                }
+
+                builder[screen].characters[i] = decoded[(screen * 82 * 25) + (y * 82) + x];
+                ++i;
+            }
+        }
+
+        i = 0;
+        for (auto y = 0; y < 25; ++y) {
+            for (auto x = 0; x < 82; ++x) {
+                if (x == 80 || x == 81) {
+                    continue;
+                }
+
+                builder[screen].colors[i] = decoded[(screen * 82 * 25) + (y * 82) + x];
+                ++i;
+            }
+        }
+    }
+
+    return builder;
 }
