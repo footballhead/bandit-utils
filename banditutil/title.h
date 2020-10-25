@@ -9,7 +9,8 @@
 
 struct title_t {
     std::array<uint8_t, 80*25> characters;
-    std::array<uint8_t, 80*25> colors; // TODO color_t?
+    std::array<color_t, 80*25> foreground;
+    std::array<color_t, 80*25> background;
 };
 
 std::vector<uint8_t> title_rle_decode(std::vector<uint8_t> const& encoded);

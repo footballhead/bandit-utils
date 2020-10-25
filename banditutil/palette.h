@@ -2,11 +2,7 @@
 
 #include <array>
 
-struct palette_t {
-    std::array<color_t, 16> colors;
-};
-
-auto constexpr ega_palette = palette_t{{
+auto constexpr ega_palette = std::array<color_t, 16>{
     color_t{0x00, 0x00, 0x00},
     color_t{0x00, 0x00, 0xAA},
     color_t{0x00, 0xAA, 0x00},
@@ -23,4 +19,4 @@ auto constexpr ega_palette = palette_t{{
     color_t{0xFF, 0x55, 0xFF},
     color_t{0xFF, 0xFF, 0x55},
     color_t{0xFF, 0xFF, 0xFF}
-}};
+};

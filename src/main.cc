@@ -12,6 +12,7 @@
 namespace {
 
 constexpr auto color_black = color_t{0, 0, 0};
+constexpr auto color_white = color_t{0xFF, 0xFF, 0xFF};
 
 struct image_t {
     int width = 0;
@@ -81,12 +82,12 @@ bool save_image(std::string const& file, image_t const& img)
     return stbi_write_png(file.c_str(), img.width, img.height, img.channels, img.data.data(), img.width * img.channels);
 }
 
-void image_blit(image_t const& src, image_t& dest, int dest_x, int dest_y)
+void image_blit(image_t const& src, image_t& dest, int dest_x, int dest_y, color_t const& foreground, color_t const& background)
 {
     for (int y = 0; y < src.height; ++y) {
         for (int x = 0; x < src.width; ++x) {
             auto const color = src.data[y * src.width + x];
-            dest.data[(y+dest_y) * dest.width + (x+dest_x)] = color;
+            dest.data[(y+dest_y) * dest.width + (x+dest_x)] = (color == color_white ? foreground : background);
         }
     }
 }
@@ -99,8 +100,9 @@ image_t draw_title(title_t title, std::vector<image_t> const& spritesheet)
 
     for (int y = 0; y < 25; y++) {
         for (int x = 0; x < 80; x++) {
-            auto const c = title.characters[y * 80 + x];
-            image_blit(spritesheet[c], builder, x * 8, y * 16);
+            auto i = y * 80 + x;
+            auto const c = title.characters[i];
+            image_blit(spritesheet[c], builder, x * 8, y * 16, title.foreground[i], title.background[i]);
         }
     }
 
@@ -123,7 +125,7 @@ int main(int argc, char** argv)
 
     auto const font_img = image_from_memory(font437, font437 + sizeof(font437));
     auto const spritesheet = image_to_spritesheet(font_img, 8, 16);
-    auto const drawn_title = draw_title(titles[0], spritesheet);
+    auto const drawn_title = draw_title(titles[2], spritesheet);
 
     auto const did_save = save_image(out_filename, drawn_title);
     if (!did_save) {

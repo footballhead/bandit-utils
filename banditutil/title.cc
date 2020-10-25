@@ -1,6 +1,7 @@
 #include "title.h"
 
 #include "file.h"
+#include "palette.h"
 
 #include <iostream>
 #include <iterator>
@@ -49,13 +50,15 @@ std::vector<title_t> titles_from_file(std::string const& filename)
 
     for (auto screen = 0; screen < 3; ++screen) {
         auto i = 0;
+        auto base = screen * 2 * 82 * 25;
+
         for (auto y = 0; y < 25; ++y) {
             for (auto x = 0; x < 82; ++x) {
                 if (x == 80 || x == 81) {
                     continue;
                 }
 
-                builder[screen].characters[i] = decoded[(screen * 82 * 25) + (y * 82) + x];
+                builder[screen].characters[i] = decoded[base + (y * 82) + x];
                 ++i;
             }
         }
@@ -67,7 +70,11 @@ std::vector<title_t> titles_from_file(std::string const& filename)
                     continue;
                 }
 
-                builder[screen].colors[i] = decoded[(screen * 82 * 25) + (y * 82) + x];
+                auto const attribute = decoded[base + 82 * 25 + (y * 82) + x];
+                auto const foreground = attribute & 0xF;
+                auto const background = (attribute >> 4) & 0x7;
+                builder[screen].foreground[i] = ega_palette[foreground];
+                builder[screen].background[i] = ega_palette[background];
                 ++i;
             }
         }
