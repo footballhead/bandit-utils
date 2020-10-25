@@ -15,4 +15,7 @@ add_executable(unpack_title
     )
 target_link_libraries(unpack_title
     banditutil
+    pdcurses
+    stb_image
+    stb_image_write
     )
